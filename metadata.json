@@ -1,0 +1,6 @@
+{
+  "name": "The Counselor Suite",
+  "description": "An elegant, magazine-style legal intelligence workspace providing advanced document audits, contract template drafting, and grounded jurisprudential consultations.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
