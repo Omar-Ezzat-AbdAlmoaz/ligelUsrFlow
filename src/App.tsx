@@ -131,6 +131,7 @@ export default function App() {
       const payload = {
         message: text,
         contextType: activeConv?.contextType || 'general',
+        language: language,
         history: activeConv?.messages.map(m => ({ role: m.role, text: m.text })) || []
       };
 
@@ -146,7 +147,7 @@ export default function App() {
       const aiMsg: ChatMessage = {
         id: 'msg-' + Math.random().toString(36).substring(2, 9),
         role: 'assistant',
-        text: data.reply || "Counselor, the core index stands ready.",
+        text: data.reply || data.text || (language === 'ar' ? "سيادة المستشار، الفهرس المركزي مستعد دائماً لتقديم المساعدة." : "Counselor, the core index stands ready."),
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         citations: data.citations || []
       };
@@ -169,8 +170,10 @@ export default function App() {
         const fallbackCitations: Citation[] = [
           {
             id: "cit-fb-1",
-            sourceName: "Bilateral NDA - Section 2 (Confidentiality)",
-            excerpt: "Hold in strict confidence all proprietary technical, financial, and business information for a period of five (5) years.",
+            sourceName: language === 'ar' ? "اتفاقية عدم الإفصاح المتبادلة - البند ٢ (السرية والخصوصية)" : "Bilateral NDA - Section 2 (Confidentiality)",
+            excerpt: language === 'ar'
+              ? "الالتزام بالحفاظ على السرية المطلقة لجميع المعلومات الفنية والتقنية والمالية والتجارية المملوكة للأطراف لمدة خمس سنوات."
+              : "Hold in strict confidence all proprietary technical, financial, and business information for a period of five (5) years.",
             page: 2
           }
         ];
@@ -178,7 +181,9 @@ export default function App() {
         const aiMsg: ChatMessage = {
           id: 'msg-' + Math.random().toString(36).substring(2, 9),
           role: 'assistant',
-          text: `Counselor, your dispatch regarding "${text}" has been cataloged. Under Delaware precedents and classic trade secret structures, we observe that mutual NDA covenants mandate standard reasonable security holds.\n\nI have aligned relevant citation markers to ground these outcomes.`,
+          text: language === 'ar'
+            ? `سيادة المستشار، لقد تم قيد وتوثيق برقية استفساركم بخصوص "${text}". بموجب أحكام القانون المدني المصري وأعراف المعاملات الثنائية للشركات، نلاحظ أن التزامات السرية المتبادلة تستوجب اتخاذ التدابير الأمنية المعتادة لحماية الأسرار والبيانات.\n\nوقد قمت بتضمين الشواهد المرجعية المعتمدة لدعم هذا الرأي الفقهي.`
+            : `Counselor, your dispatch regarding "${text}" has been cataloged. Under Delaware precedents and classic trade secret structures, we observe that mutual NDA covenants mandate standard reasonable security holds.\n\nI have aligned relevant citation markers to ground these outcomes.`,
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
           citations: fallbackCitations
         };
@@ -201,9 +206,27 @@ export default function App() {
     const newId = 'conv-' + Math.random().toString(36).substring(2, 9);
     
     let initialTitle = "General Advisory Consultation";
-    if (contextType === 'firm') initialTitle = "Firm Archive Inquiry";
-    if (contextType === 'case') initialTitle = "Case Dispute Review";
-    if (contextType === 'kb') initialTitle = "Egyptian Civil Code Consultation";
+    if (language === 'ar') {
+      initialTitle = "جلسة مشورة عامة";
+      if (contextType === 'firm') initialTitle = "استعلام أرشيف المؤسسة";
+      if (contextType === 'case') initialTitle = "فحص ودراسة نزاع القضية";
+      if (contextType === 'kb') initialTitle = "استشارة في القانون المدني المصري";
+    } else {
+      if (contextType === 'firm') initialTitle = "Firm Archive Inquiry";
+      if (contextType === 'case') initialTitle = "Case Dispute Review";
+      if (contextType === 'kb') initialTitle = "Egyptian Civil Code Consultation";
+    }
+
+    const arabicGreetings: Record<string, string> = {
+      general: "مرحباً بك سيادة المستشار. تم ربط قناة الاتصال المؤمنة للديوان بنجاح بسياق الاستشارات العامة والإجراءات القضائية. بموجب بروتوكولات السرية المطلقة والخصوصية، كيف يمكنني تقديم الدعم الفني والقانوني لكم اليوم؟",
+      firm: "مرحباً بك سيادة المستشار. تم ربط قناة الاتصال المؤمنة هذه بأرشيفات ومذكرات المؤسسة المعتمدة. كيف يمكنني مساعدتك في استخراج السوابق أو مراجعة الملفات التاريخية؟",
+      case: "طاب يومك سيادة المستشار. هذه الجلسة مخصصة بالكامل لدراسة نزاع القضية ومطابقتها للشواهد القانونية والدفوع الموضوعية والشكلية. تفضل بطرح استفسارك للبدء.",
+      kb: "طاب يومك سيادة المستشار. تم ربط جلسة العمل الحالية مباشرة بمدونات ومواد وشروح القانون المدني المصري. كيف يمكنني تأصيل المسألة القانونية المعروضة استناداً للمواد والمراجع الفقهية المودعة؟"
+    };
+
+    const text = language === 'ar'
+      ? (arabicGreetings[contextType] || arabicGreetings.general)
+      : `Greetings, Counselor. This secure chambers channel is now bound to the ${contextType.toUpperCase()} context indexes. Under absolute privacy protocols, how can I advise on current briefs or statutory guidelines?`;
 
     const newConv: Conversation = {
       id: newId,
@@ -213,7 +236,7 @@ export default function App() {
         {
           id: 'init-msg',
           role: 'assistant',
-          text: `Greetings, Counselor. This secure chambers channel is now bound to the ${contextType.toUpperCase()} context indexes. Under absolute privacy protocols, how can I advise on current briefs or statutory guidelines?`,
+          text: text,
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         }
       ],
